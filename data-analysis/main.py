@@ -73,7 +73,9 @@ def main():
     can_01F0A004()
     can_01F0A005()
     gyr()
+    select_choices()
 
+def select_choices():
     choices = easygui.multchoicebox("Choose what to graph:", "BFR Data Analysis", [
         "Acceleration Magnitude",
         "Battery Voltage",
@@ -399,7 +401,7 @@ def plot_data_multi_axes(data):
     fig.tight_layout()
     reset_params()
     plt.show()
-
+    fig.canvas.mpl_connect('close_event', select_choices())
 
 if __name__ == '__main__':
     import timeit
