@@ -1,9 +1,30 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import easygui
 from os import listdir
 from os.path import isfile, join
 
+# is the maximum number of samples acc() will average over, cannot be 0
+acc_average_times = 5
+
+# below are parameters that user can set to fits specific needs, will reset to default values after plt.show()
+# specifies a range in which data will be plotted
+graph_within_range = False
+x_range_lower = 25
+x_range_upper = 26
+y_range_lower = 0.3
+y_range_upper = 0.4
+# have a legend or not
+have_legend = True
+# have a grid or not
+have_grid = True
+# a list of color chars, can change this to add more colors
+colors = list("bgrcmy")
+# label of the y-axis, empty string means use self-generated label, overwrites only when there is one y label
+y_label = ""
+# title of the graph, empty string means use self-generated title
+graph_title = ""
 
 # data class to help keep track of different types of data
 class Data:
@@ -43,30 +64,9 @@ rotation_z = Data("Rotation Z", "deg/s")
 
 # data frame containing all data imported from files
 data_df = None
-# is the maximum number of samples acc() will average over, cannot be 0
-acc_average_times = 5
-
-# a list of color chars, can change this to add more colors
-colors = list("bgrcmy")
-# below are parameters that user can set to fits specific needs, will reset to default values after plt.show()
-# specifies a range in which data will be plotted
-graph_within_range = False
-x_range_lower = 25
-x_range_upper = 26
-y_range_lower = 0.3
-y_range_upper = 0.4
-# have a legend or not
-have_legend = True
-# have a grid or not
-have_grid = True
-# label of the y-axis, empty string means use self-generated label, overwrites only when there is one y label
-y_label = ""
-# title of the graph, empty string means use self-generated title
-graph_title = ""
-
 
 def main():
-    load_data("files/1234")
+    load_data(easygui.fileopenbox())
     acc()
     can_01F0A000()
     can_01F0A003()
@@ -74,28 +74,72 @@ def main():
     can_01F0A005()
     gyr()
 
-    plot_data([coolant_temp])
+    choices = easygui.multchoicebox("Choose what to graph:", "BFR Data Analysis", [
+        "Acceleration Magnitude",
+        "Battery Voltage",
+        "Coolant Temperature",
+        "Engine Speed",
+        "Fan on/off",
+        "Fuel Pressure",
+        "Fuel Pump on/off",
+        "Ignition Timing",
+        "Intake Air Temperature",
+        "Lambda",
+        "Lambda Target",
+        "Mass Airflow",
+        "Rotation X",
+        "Rotation Y",
+        "Rotation Z",
+        "Throttle %",
+        "Volumetric Efficiency"
+    ])
+    data_types = []
+    if "Acceleration Magnitude" in choices:
+        data_types.append(acc_magnitude)
+    if "Battery Voltage" in choices:
+        data_types.append(battery_volts)
+    if "Coolant Temperature" in choices:
+        data_types.append(coolant_temp)
+    if "Engine Speed" in choices:
+        data_types.append(engine_speed)
+    if "Fan on/off" in choices:
+        data_types.append(fan1)
+    if "Fuel Pressure" in choices:
+        data_types.append(fuel_pressure)
+    if "Fuel Pump on/off" in choices:
+        data_types.append(fuel_pump)
+    if "Ignition Timing" in choices:
+        data_types.append(ign_timing)
+    if "Intake Air Temperature" in choices:
+        data_types.append(intake_air_temp)
+    if "Lambda" in choices:
+        data_types.append(lambda1)
+    if "Lambda Target" in choices:
+        data_types.append(lambda_target)
+    if "Mass Airflow" in choices:
+        data_types.append(mass_airflow)
+    if "Rotation X" in choices:
+        data_types.append(rotation_x)
+    if "Rotation Y" in choices:
+        data_types.append(rotation_y)
+    if "Rotation Z" in choices:
+        data_types.append(rotation_z)
+    if "Throttle %" in choices:
+        data_types.append(throttle)
+    if "Volumetric Efficiency" in choices:
+        data_types.append(ve)
+
+    plot_data_multi_axes(data_types)
     # plot_data_multi_axes([coolant_temp, intake_air_temp, throttle])
 
 
 # read all files under directory, concatenates them, store them in data_df
 # files will be read in lexicographic order
-def load_data(directory):
+def load_data(file):
     global data_df
     # get all files under directory, excluding folders
-    filenames = [f for f in listdir(directory) if isfile(join(directory, f))]
-    # sort the file names lexicographically
-    filenames.sort()
-    df_list = []
-    for file in filenames:
-        # skip files whose names start with a dot (to avoid reading .DS_Store files and alike)
-        if file[0] == ".":
-            continue
-        filepath = directory + "/" + file
-        print("Reading", filepath, "...")
-        df_list.append(pd.read_csv(filepath, index_col=0, names=["Message Type", "Time(ms)", "Data1", "Data2", "Data3"],
-                                   dtype=str))
-    data_df = pd.concat(df_list, axis=0, ignore_index=False)
+    data_df = pd.read_csv(file, index_col=0, names=["Message Type", "Time(ms)", "Data1", "Data2", "Data3"],
+                                   dtype=str)
     '''
     another way to structure data_df: message type will become its own column instead of being the index column
     for file in filenames:
@@ -297,17 +341,24 @@ def plot_data(data):
 def plot_data_multi_axes(data):
     # sort data into groups that share the same units, so that they can share the same y-axis
     data_groups = []
+
+    if len(data) < 1:
+        print("No data selected")
+        return
+
     while len(data) > 0:
         units = data[0].units
         group = []
         i = 0
         while i < len(data):
             if data[i].units == units:
+                print("Adding " + data[i].title + " to group")
                 group.append(data[i])
                 data.remove(data[i])
             else:
                 i += 1
         data_groups.append(group)
+        print("Group finished")
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -316,16 +367,23 @@ def plot_data_multi_axes(data):
     # create new axes and lines
     lines = []
     color_index = 0
-    for d in data:
-        if len(lines) == 0:
-            axis = ax
-        else:
-            axis = ax.twinx()
-        for d in group:
+    ax.set_ylabel(data_groups[0][0].units)
+    for d in data_groups[0]:
+        line = ax.plot(d.x, d.y, "", label=d.title, color=colors[color_index % len(colors)])
+        lines += line  # note that line is a list itself
+        color_index += 1
+
+    if len(data_groups) > 1:
+        axis = ax.twinx()
+        for d in data_groups[1]:
             line = axis.plot(d.x, d.y, "", label=d.title, color=colors[color_index % len(colors)])
             lines += line  # note that line is a list itself
             color_index += 1
-        axis.set_ylabel(group[0].units)
+        axis.set_ylabel(data_groups[1][0].units)
+
+    if len(data_groups) > 2:
+        print("More than two units found, ignoring")
+
     labels = [l.get_label() for l in lines]
 
     # stylistic elements
