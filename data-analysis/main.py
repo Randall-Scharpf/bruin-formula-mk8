@@ -39,6 +39,8 @@ class Data:
 # all the data that we want to keep track of
 # acc data
 acc_magnitude = Data("Acceleration Magnitude", "g")
+# egt data
+egt = Data("Exhaust Gas Temp", "F")
 # can data with message id = 01F0A000
 engine_speed = Data("Engine Speed", "RPM")
 throttle = Data("Throttle", "%")
@@ -49,6 +51,7 @@ lambda1 = Data("Lambda #1", "Lambda")
 ign_timing = Data("Ignite Timing", "Deg")
 battery_volts = Data("Battery Volts", "Volts")
 # can data with message id = 0x01F0A004
+manifold_pressure = Data("Manifold Absolute Pressure", "kPa")
 ve = Data("Volumetric Efficiency", "%")
 fuel_pressure = Data("Fuel Pressure", "PSIg")
 lambda_target = Data("Lambda Target", "Lambda")
@@ -68,6 +71,7 @@ data_df = None
 def main():
     load_data(easygui.fileopenbox())
     acc()
+    A1()
     can_01F0A000()
     can_01F0A003()
     can_01F0A004()
@@ -81,6 +85,7 @@ def select_choices():
         "Battery Voltage",
         "Coolant Temperature",
         "Engine Speed",
+        "Exhaust Gas Temperature",
         "Fan on/off",
         "Fuel Pressure",
         "Fuel Pump on/off",
@@ -89,6 +94,7 @@ def select_choices():
         "Lambda",
         "Lambda Target",
         "Mass Airflow",
+        "Manifold Absolute Pressure",
         "Rotation X",
         "Rotation Y",
         "Rotation Z",
@@ -104,6 +110,8 @@ def select_choices():
         data_types.append(coolant_temp)
     if "Engine Speed" in choices:
         data_types.append(engine_speed)
+    if "Exhaust Gas Temperature" in choices:
+        data_types.append(egt)
     if "Fan on/off" in choices:
         data_types.append(fan1)
     if "Fuel Pressure" in choices:
@@ -120,6 +128,8 @@ def select_choices():
         data_types.append(lambda_target)
     if "Mass Airflow" in choices:
         data_types.append(mass_airflow)
+    if "Manifold Absolute Pressure" in choices:
+        data_types.append(manifold_pressure)
     if "Rotation X" in choices:
         data_types.append(rotation_x)
     if "Rotation Y" in choices:
@@ -174,6 +184,27 @@ def hex_to_signed_int8(hexadecimal):
         int_val -= 128
     return int_val
 
+# process EGT data
+def A1():
+    df = data_df.loc[(data_df.index == "A1")]
+    if df.empty:
+        print("Warning: No data from A1")
+        return
+
+    time_stamps = df["Time(ms)"].to_numpy().astype(float) / 1e6  # to make timestamps in seconds
+    messages = df["Data1"].to_list()
+    global egt
+    egt.x = time_stamps
+    for msg in messages:
+        # integer to voltage
+        value = int(msg)/1024.0*3.3
+        # undo voltage divider
+        value = value*5/3.2
+        # convert to C using datasheet of amp
+        value = (value-1.25)/0.005
+        # convert to F
+        value = value* 9/5 + 32
+        egt.y.append(value)
 
 # process can data with message id 01F0A000
 def can_01F0A000():
@@ -219,10 +250,11 @@ def can_01F0A004():
     time_stamps = df["Time(ms)"].to_numpy().astype(float) / 1e6
     messages = df["Data3"].to_list()
 
-    global ve, fuel_pressure, lambda_target, fuel_pump, fan1
-    ve.x = fuel_pressure.x = lambda_target.x = fuel_pump.x = fan1.x = time_stamps
+    global ve, manifold_pressure, fuel_pressure, lambda_target, fuel_pump, fan1
+    manifold_pressure.x = ve.x = fuel_pressure.x = lambda_target.x = fuel_pump.x = fan1.x = time_stamps
     for msg in messages:
         ve.y.append(int(msg[4: 6], 16))
+        manifold_pressure.y.append(int(msg[0: 4], 16) * 0.1)
         fuel_pressure.y.append(int(msg[6: 8], 16) * 0.580151)
         lambda_target.y.append(int(msg[10: 12], 16) * 0.00390625)
         # the [2:] removes the unnecessary '0b' from string, zfill(8) pads the string with leading zeros
