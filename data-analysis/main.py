@@ -60,6 +60,8 @@ fan1 = Data("Fan 1", "bool")
 # can data with message id = 0x01F0A005
 launch_ramp_time = Data("Launch Ramp Time", "ms")
 mass_airflow = Data("Mass Airflow", "gms/s")
+# can data with message id = 0x01F0A006
+inj_duty = Data("Injector Duty Cycle", "%")
 # gyr data
 rotation_x = Data("Rotation X", "deg/s")
 rotation_y = Data("Rotation Y", "deg/s")
@@ -76,6 +78,7 @@ def main():
     can_01F0A003()
     can_01F0A004()
     can_01F0A005()
+    can_01F0A006()
     gyr()
     select_choices()
 
@@ -90,6 +93,7 @@ def select_choices():
         "Fuel Pressure",
         "Fuel Pump on/off",
         "Ignition Timing",
+        "Injector Duty Cycle",
         "Intake Air Temperature",
         "Lambda",
         "Lambda Target",
@@ -120,6 +124,8 @@ def select_choices():
         data_types.append(fuel_pump)
     if "Ignition Timing" in choices:
         data_types.append(ign_timing)
+    if "Injector Duty Cycle" in choices:
+        data_types.append(inj_duty)
     if "Intake Air Temperature" in choices:
         data_types.append(intake_air_temp)
     if "Lambda" in choices:
@@ -277,6 +283,20 @@ def can_01F0A005():
     for msg in messages:
         launch_ramp_time.y.append(int(msg[0: 4], 16) * 10)
         mass_airflow.y.append(int(msg[4: 8], 16) * 0.05)
+
+# process can data with message id 0x01F0A006
+def can_01F0A006():
+    df = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "01F0A006")]
+    if df.empty:
+        print("Warning: No CAN data with message id 01F0A006")
+        return
+    time_stamps = df["Time(ms)"].to_numpy().astype(float) / 1e6
+    messages = df["Data3"].to_list()
+
+    global inj_duty
+    inj_duty.x = time_stamps
+    for msg in messages:
+        inj_duty.y.append(int(msg[4: 6], 16) * 0.392157)
 
 
 # process acc data
