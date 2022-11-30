@@ -1,9 +1,11 @@
 import pandas as pd
+import matplotlib
+import matplotlib.backends.backend_tkagg
 import matplotlib.pyplot as plt
 import numpy as np
 import easygui
-from os import listdir
-from os.path import isfile, join
+
+matplotlib.use('tkagg')
 
 # is the maximum number of samples acc() will average over, cannot be 0
 acc_average_times = 5
@@ -25,6 +27,7 @@ colors = list("bgrcmy")
 y_label = ""
 # title of the graph, empty string means use self-generated title
 graph_title = ""
+
 
 # data class to help keep track of different types of data
 class Data:
@@ -70,7 +73,9 @@ rotation_z = Data("Rotation Z", "deg/s")
 # data frame containing all data imported from files
 data_df = None
 
+
 def main():
+    # open a file select GUI
     load_data(easygui.fileopenbox())
     acc()
     A1()
@@ -81,6 +86,7 @@ def main():
     can_01F0A006()
     gyr()
     select_choices()
+
 
 def select_choices():
     choices = easygui.multchoicebox("Choose what to graph:", "BFR Data Analysis", [
@@ -106,6 +112,8 @@ def select_choices():
         "Volumetric Efficiency"
     ])
     data_types = []
+    if choices is None:
+        return
     if "Acceleration Magnitude" in choices:
         data_types.append(acc_magnitude)
     if "Battery Voltage" in choices:
@@ -157,7 +165,7 @@ def load_data(file):
     global data_df
     # get all files under directory, excluding folders
     data_df = pd.read_csv(file, index_col=0, names=["Message Type", "Time(ms)", "Data1", "Data2", "Data3"],
-                                   dtype=str)
+                          dtype=str)
     '''
     another way to structure data_df: message type will become its own column instead of being the index column
     for file in filenames:
@@ -190,6 +198,7 @@ def hex_to_signed_int8(hexadecimal):
         int_val -= 128
     return int_val
 
+
 # process EGT data
 def A1():
     df = data_df.loc[(data_df.index == "A1")]
@@ -203,14 +212,15 @@ def A1():
     egt.x = time_stamps
     for msg in messages:
         # integer to voltage
-        value = int(msg)/1024.0*3.3
+        value = int(msg) / 1024.0 * 3.3
         # undo voltage divider
-        value = value*5/3.2
+        value = value * 5 / 3.2
         # convert to C using datasheet of amp
-        value = (value-1.25)/0.005
+        value = (value - 1.25) / 0.005
         # convert to F
-        value = value* 9/5 + 32
+        value = value * 9 / 5 + 32
         egt.y.append(value)
+
 
 # process can data with message id 01F0A000
 def can_01F0A000():
@@ -283,6 +293,7 @@ def can_01F0A005():
     for msg in messages:
         launch_ramp_time.y.append(int(msg[0: 4], 16) * 10)
         mass_airflow.y.append(int(msg[4: 8], 16) * 0.05)
+
 
 # process can data with message id 0x01F0A006
 def can_01F0A006():
@@ -455,8 +466,10 @@ def plot_data_multi_axes(data):
     plt.show()
     fig.canvas.mpl_connect('close_event', select_choices())
 
+
 if __name__ == '__main__':
     import timeit
+
     start = timeit.default_timer()
     main()
     stop = timeit.default_timer()
