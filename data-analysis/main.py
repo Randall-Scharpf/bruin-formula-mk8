@@ -4,6 +4,7 @@ import matplotlib.backends.backend_tkagg
 import matplotlib.pyplot as plt
 import numpy as np
 import easygui
+import csv
 
 matplotlib.use('tkagg')
 
@@ -112,6 +113,7 @@ def select_choices():
         "Volumetric Efficiency"
     ])
     data_types = []
+    fields=[]
     if choices is None:
         return
     if "Acceleration Magnitude" in choices:
@@ -155,7 +157,9 @@ def select_choices():
     if "Volumetric Efficiency" in choices:
         data_types.append(ve)
 
-    plot_data_multi_axes(data_types)
+    output_csv(data_types)
+    # plot_data_multi_axes(data_types)
+
     # plot_data_multi_axes([coolant_temp, intake_air_temp, throttle])
 
 
@@ -465,6 +469,86 @@ def plot_data_multi_axes(data):
     reset_params()
     plt.show()
     fig.canvas.mpl_connect('close_event', select_choices())
+
+
+# data is the list of Data that will be outputted
+# call this function if you want to output plotted data as CSV
+# Please optimize this, i'm just a stupid mechE who doesn't know how to code well
+def output_csv(data):
+    # Return if no data is selected
+    if len(data) < 1:
+        print("No data selected")
+        return
+
+    # Define variables
+    data_placeholder = data
+    data_groups = []
+    fields = ["Time [s]"]
+    col = []
+    tcol = []
+    rows = []
+    time = []
+
+    # Place data into groups by title
+    while len(data_placeholder) > 0:
+        title = data_placeholder[0].title
+        group = []
+        i = 0
+        while i < len(data_placeholder):
+            if data_placeholder[i].title == title:
+                group.append(data_placeholder[i])
+                data_placeholder.remove(data_placeholder[i])
+            else:
+                i += 1
+        data_groups.append(group)
+    print("Grouping finished (CSV)")
+
+    # Put data into columns
+    i = 0
+    for a in data_groups:
+        for d in a:
+            fields.append(d.title + " [" + d.units + "]")
+            tcol.append(d.x)
+            col.append(d.y)
+
+    # Collect all times into time array, remove duplicates, and sorts the array
+    for a in tcol:
+        for d in a:
+            time.append(d)
+    time = [*set(time)]
+    time.sort()
+
+    # Turn columns into rows
+    # Matches data to its relevant timestamp
+    # Please optimize this, i'm just a stupid mechE that doesn't know how to code
+    print("Sorting data into columns, see you in an hour! :)")
+    # Runs through every timestamp in the time list
+    for a in time:
+        r = [a]
+        i = 0
+        # For every timestamp, run through each dataset selected
+        while i < len(tcol):
+            j = 0
+            found = False
+            # Check every element in the dataset to see if it has a matching timestamp
+            # If it does, add it to the row. If not, add a dash.
+            while j < len(tcol[i]):
+                if tcol[i][j] == a:
+                    r.append(col[i][j])
+                    found = True
+                    break
+                j += 1
+            if not found:
+                r.append("-")
+            i += 1
+        rows.append(r)
+
+    # Write to CSV
+    with open('data.csv', 'w') as f:
+        # using csv.writer method from CSV package
+        write = csv.writer(f)
+        write.writerow(fields)
+        write.writerows(rows)
 
 
 if __name__ == '__main__':
