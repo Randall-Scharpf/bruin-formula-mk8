@@ -520,25 +520,22 @@ def output_csv(data):
 
     # Turn columns into rows
     # Matches data to its relevant timestamp
-    # Please optimize this, i'm just a stupid mechE that doesn't know how to code
-    print("Sorting data into columns, see you in an hour! :)")
+    index = [0] * len(tcol)
     # Runs through every timestamp in the time list
     for a in time:
         r = [a]
         i = 0
         # For every timestamp, run through each dataset selected
         while i < len(tcol):
-            j = 0
             found = False
-            # Check every element in the dataset to see if it has a matching timestamp
+            # Check if next element's timestamp in dataset (denoted by index array) matches current timestamp in list
             # If it does, add it to the row. If not, add a dash.
-            while j < len(tcol[i]):
-                if tcol[i][j] == a:
-                    r.append(col[i][j])
-                    found = True
-                    break
-                j += 1
-            if not found:
+            if index[i] == len(tcol[i]):
+                r.append("-")
+            elif tcol[i][index[i]] == a:
+                r.append(col[i][index[i]])
+                index[i] += 1
+            else:
                 r.append("-")
             i += 1
         rows.append(r)
