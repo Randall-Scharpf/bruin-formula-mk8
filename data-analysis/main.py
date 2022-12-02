@@ -90,7 +90,7 @@ def main():
 
 
 def select_choices():
-    choices = easygui.multchoicebox("Choose what to graph:", "BFR Data Analysis", [
+    choices = easygui.multchoicebox("Choose the data you want:", "BFR Data Analysis", [
         "Acceleration Magnitude",
         "Battery Voltage",
         "Coolant Temperature",
@@ -113,7 +113,6 @@ def select_choices():
         "Volumetric Efficiency"
     ])
     data_types = []
-    fields=[]
     if choices is None:
         return
     if "Acceleration Magnitude" in choices:
@@ -157,8 +156,17 @@ def select_choices():
     if "Volumetric Efficiency" in choices:
         data_types.append(ve)
 
-    output_csv(data_types)
-    # plot_data_multi_axes(data_types)
+    output_choice = easygui.multchoicebox("Choose the data output format:", "BFR Data Analysis", [
+        "CSV",
+        "Graph"
+    ])
+
+    if output_choice is None:
+        return
+    if "CSV" in output_choice:
+        output_csv(data_types.copy())
+    if "Graph" in output_choice:
+        plot_data_multi_axes(data_types.copy())
 
     # plot_data_multi_axes([coolant_temp, intake_air_temp, throttle])
 
@@ -473,7 +481,6 @@ def plot_data_multi_axes(data):
 
 # data is the list of Data that will be outputted
 # call this function if you want to output plotted data as CSV
-# Please optimize this, i'm just a stupid mechE who doesn't know how to code well
 def output_csv(data):
     # Return if no data is selected
     if len(data) < 1:
@@ -481,7 +488,6 @@ def output_csv(data):
         return
 
     # Define variables
-    data_placeholder = data
     data_groups = []
     fields = ["Time [s]"]
     col = []
@@ -490,18 +496,17 @@ def output_csv(data):
     time = []
 
     # Place data into groups by title
-    while len(data_placeholder) > 0:
-        title = data_placeholder[0].title
+    while len(data) > 0:
+        title = data[0].title
         group = []
         i = 0
-        while i < len(data_placeholder):
-            if data_placeholder[i].title == title:
-                group.append(data_placeholder[i])
-                data_placeholder.remove(data_placeholder[i])
+        while i < len(data):
+            if data[i].title == title:
+                group.append(data[i])
+                data.remove(data[i])
             else:
                 i += 1
         data_groups.append(group)
-    print("Grouping finished (CSV)")
 
     # Put data into columns
     i = 0
@@ -546,6 +551,7 @@ def output_csv(data):
         write = csv.writer(f)
         write.writerow(fields)
         write.writerows(rows)
+    print("CSV Outputted")
 
 
 if __name__ == '__main__':
