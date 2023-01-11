@@ -238,7 +238,7 @@ class MainWindow(QMainWindow):
             for data_name in data_selected:
                 print(data_name)
                 data_type = data.select_choices([data_name])[0]
-                data.save_data(csv_dir + "/" + data_name + ".csv", data_type)
+                data.save_data(csv_dir + "/" + data_name.replace("/", "-") + ".csv", data_type)
             show_message_box("CSVs saved", "Success", QMessageBox.NoIcon)
 
 
