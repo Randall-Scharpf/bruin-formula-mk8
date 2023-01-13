@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 import sys
 import data
+import pandas as pd
 
 # a list of color chars, can change this to add more colors
 colors = list("bgrcmy")
@@ -231,15 +232,11 @@ class MainWindow(QMainWindow):
     def _on_save_csv_clicked(self):
         file_dialog = QFileDialog()
         file_dialog.setFileMode(QFileDialog.DirectoryOnly)
-        file_dialog.setNameFilter("CSV files (*.csv *.CSV)")
         if file_dialog.exec_():
             csv_dir = file_dialog.selectedFiles()[0]
             data_selected = [item.text().replace(" [No data]", "") for item in self.select_data_list.selectedItems()]
-            for data_name in data_selected:
-                print(data_name)
-                data_type = data.select_choices([data_name])[0]
-                data.save_data(csv_dir + "/" + data_name.replace("/", "-") + ".csv", data_type)
-            show_message_box("CSVs saved", "Success", QMessageBox.NoIcon)
+            data.save_data1(csv_dir + "/data.csv", data_selected)
+            show_message_box("CSV saved", "Success", QMessageBox.NoIcon)
 
 
 def main():

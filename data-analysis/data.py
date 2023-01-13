@@ -153,9 +153,17 @@ def load_data(file):
 
 
 # save data into csv
-def save_data(file, data):
-    df = pd.DataFrame({"time (s)": data.x, data.title + " (" + data.units + ")": data.y})
-    df.to_csv(file, header=False, index=False)
+def save_data1(file, data_selected):
+    dictionary = {"time(ms)": [], "value(units)": []}
+    for data_name in data_selected:
+        data_type = select_choices([data_name])[0]
+        dictionary["time(ms)"].append("")
+        dictionary["value(units)"].append("")
+        dictionary["time(ms)"].append(data_type.title + " (" + data_type.units + ")")
+        dictionary["value(units)"].append("")
+        dictionary["time(ms)"].extend(data_type.x)
+        dictionary["value(units)"].extend(data_type.y)
+    pd.DataFrame(dictionary).to_csv(file, header=False, index=False)
 
 
 '''
