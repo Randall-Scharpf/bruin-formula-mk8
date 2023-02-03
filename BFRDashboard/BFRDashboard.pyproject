@@ -1,0 +1,3 @@
+{
+    "files": ["gui/numdisplay/NumberDisplayWidget.py","gui/gear/GearWidget.py","gui/main.ui","gui/dials/AFRDial.py","gui/numdisplay/CoolantDisplay.py","gui/numdisplay/BrakeDisplay.py","gui/dials/AnalogGaugeWidget.py","gui/numdisplay/ExhaustDisplay.py","gui/dials/VelocityDial.py","gui/dials/RPMDial.py","main.py","gui/therm/ThermometerWidget.py","gui/numdisplay/BorderBackgroundWidget.py","gui/numdisplay/BatteryDisplay.py"]
+}

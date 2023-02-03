@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Garamond</family>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: black;font-family:Garamond;</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="font">
+    <font>
+     <family>Garamond</family>
+    </font>
+   </property>
+   <widget class="VelocityDial" name="VelocityDial" native="true">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>360</y>
+      <width>300</width>
+      <height>300</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="AFRDial" name="AFRDial" native="true">
+    <property name="geometry">
+     <rect>
+      <x>604</x>
+      <y>360</y>
+      <width>300</width>
+      <height>300</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="RPMDial" name="RPMDial" native="true">
+    <property name="geometry">
+     <rect>
+      <x>312</x>
+      <y>300</y>
+      <width>400</width>
+      <height>400</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="RPMLabel">
+    <property name="geometry">
+     <rect>
+      <x>470</x>
+      <y>555</y>
+      <width>90</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Garamond</family>
+      <pointsize>34</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #CEF4FF; font-size:34pt;background-color:rgba(0,0,0,0);</string>
+    </property>
+    <property name="text">
+     <string>RPM</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="VelocityLabel">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>560</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Garamond</family>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #CEF4FF;background-color:rgba(0,0,0,0);</string>
+    </property>
+    <property name="text">
+     <string>Velocity</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="AFRLabel">
+    <property name="geometry">
+     <rect>
+      <x>730</x>
+      <y>560</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Garamond</family>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #CEF4FF;background-color:rgba(0,0,0,0);</string>
+    </property>
+    <property name="text">
+     <string>Lambda</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="GearWidget" name="Gear" native="true">
+    <property name="geometry">
+     <rect>
+      <x>387</x>
+      <y>20</y>
+      <width>250</width>
+      <height>260</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="BorderBackgroundWidget" name="LeftNumBox" native="true">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>60</y>
+      <width>150</width>
+      <height>280</height>
+     </rect>
+    </property>
+    <widget class="CoolantDisplay" name="CoolantTemp_3" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>150</width>
+       <height>140</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="ExhaustDisplay" name="ExhaustTemp" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>135</y>
+       <width>150</width>
+       <height>140</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="BorderBackgroundWidget" name="RightNumBox" native="true">
+    <property name="geometry">
+     <rect>
+      <x>674</x>
+      <y>60</y>
+      <width>150</width>
+      <height>280</height>
+     </rect>
+    </property>
+    <widget class="BrakeDisplay" name="Brake" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>150</width>
+       <height>140</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="BatteryDisplay" name="Battery" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>135</y>
+       <width>150</width>
+       <height>140</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <zorder>LeftNumBox</zorder>
+   <zorder>VelocityDial</zorder>
+   <zorder>AFRDial</zorder>
+   <zorder>RPMDial</zorder>
+   <zorder>RPMLabel</zorder>
+   <zorder>VelocityLabel</zorder>
+   <zorder>AFRLabel</zorder>
+   <zorder>Gear</zorder>
+   <zorder>RightNumBox</zorder>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>RPMDial</class>
+   <extends>QWidget</extends>
+   <header>gui/dials/RPMDial.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>VelocityDial</class>
+   <extends>QWidget</extends>
+   <header>gui/dials/VelocityDial.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AFRDial</class>
+   <extends>QWidget</extends>
+   <header>gui/dials/AFRDial.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GearWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/gear/GearWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BorderBackgroundWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/numdisplay/BorderBackgroundWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CoolantDisplay</class>
+   <extends>QWidget</extends>
+   <header>gui/numdisplay/CoolantDisplay.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ExhaustDisplay</class>
+   <extends>QWidget</extends>
+   <header>gui/numdisplay/ExhaustDisplay.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BatteryDisplay</class>
+   <extends>QWidget</extends>
+   <header>gui/numdisplay/BatteryDisplay.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>BrakeDisplay</class>
+   <extends>QWidget</extends>
+   <header>gui/numdisplay/BrakeDisplay.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
