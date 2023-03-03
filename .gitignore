@@ -1,2 +1,6 @@
 venv/*
 .idea/*
+dash-pcb/.pio/build/project.checksum
+dash-pcb/.pio/build/teensy41/idedata.json
+dash-pcb/.vscode/c_cpp_properties.json
+dash-pcb/.vscode/launch.json
