@@ -82,12 +82,12 @@ data_df = None
 def load(csv):
     load_data(csv)
     acc()
-    A1()
     can_01F0A000()
     can_01F0A003()
     can_01F0A004()
     can_01F0A005()
     can_01F0A006()
+    can_00DA5401()
     gyr()
 
 
@@ -195,28 +195,6 @@ def df_to_float_numpy(df, col_name):
         return col.to_numpy().astype(float)
 
 
-# process EGT data
-def A1():
-    df = data_df.loc[(data_df.index == "A1")]
-    if df.empty:
-        print("Warning: No data from A1")
-
-    time_stamps = df_to_float_numpy(df, "Time(ms)") / 1e6  # to make timestamps in seconds
-    messages = df["Data1"].to_list()
-    global egt
-    egt.x = time_stamps
-    for msg in messages:
-        # integer to voltage
-        value = int(msg) / 1024.0 * 3.3
-        # undo voltage divider
-        value = value * 5 / 3.2
-        # convert to C using datasheet of amp
-        value = (value - 1.25) / 0.005
-        # convert to F
-        value = value * 9 / 5 + 32
-        egt.y.append(value)
-
-
 # process can data with message id 01F0A000
 def can_01F0A000():
     df = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "01F0A000")]
@@ -233,6 +211,21 @@ def can_01F0A000():
         throttle.y.append(int(msg[8: 12], 16) * 0.0015259)
         intake_air_temp.y.append(9.0 / 5 * hex_to_signed_int8(msg[12: 14]) + 32)
         coolant_temp.y.append(9.0 / 5 * hex_to_signed_int8(msg[14: 16]) + 32)
+
+
+# process can data with message id 00DA5401 (egt data)
+def can_00DA5401():
+    df = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "00DA5401")]
+    if df.empty:
+        print("Warning: No CAN data with message id 00DA5401")
+
+    time_stamps = df_to_float_numpy(df, "Time(ms)") / 1e6
+    messages = df["Data3"].to_list()
+
+    global egt
+    egt.x = time_stamps
+    for msg in messages:
+        egt.y.append(int(msg[0: 4], 16) / 16 * 9/5 + 32)
 
 
 # process can data with message id 01F0A003
