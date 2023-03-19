@@ -1,0 +1,3 @@
+{
+    "files": ["globalfonts.py","resources.py","gui/gear/GearWidget.py","gui/dials/VelocityDial.py","receive.py","gui/main.ui","gui/numdisplay/NumberDisplayWidget.py","gui/numdisplay/CoolantDisplay.py","gui/numdisplay/BrakeDisplay.py","gui/numdisplay/ExhaustDisplay.py","gui/dials/AFRDial.py","main.py","gui/numdisplay/BorderBackgroundWidget.py","gui/dials/RPMDial.py","gui/misc/ExitLabel.py","timer.py","resources.qrc","gui/dials/AnalogGaugeWidget.py","gui/numdisplay/BatteryDisplay.py"]
+}
