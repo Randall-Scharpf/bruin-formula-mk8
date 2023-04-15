@@ -6,7 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 from matplotlib.figure import Figure
 import sys
 import data
-import pandas as pd
+import mplcursors
 
 # a list of color chars, can change this to add more colors
 colors = list("bgrcmy")
@@ -69,20 +69,19 @@ class GraphWindow(QWidget):
         if params["grid1"]:
             ax.grid()
 
-        if len(data_groups) > 1:
+        for i in range(1, len(data_groups)):
             axis = ax.twinx()
-            for d in data_groups[1]:
+            axis.spines["right"].set_position(("outward", (i - 1) * 60 if params["multi-axes"] or i < 2 else 0))
+            for d in data_groups[i]:
                 line = axis.plot(d.x, d.y, "", label=d.title, color=colors[color_index % len(colors)])
                 lines += line  # note that line is a list itself
                 color_index += 1
             axis.set_xlabel("Time (s)")
-            axis.set_ylabel(data_groups[1][0].title + " (" + data_groups[1][0].units + ")")
-            concat_title += " and " + data_groups[1][0].title
+            if params["multi-axes"] or i < 2:
+                axis.set_ylabel(data_groups[i][0].title + " (" + data_groups[i][0].units + ")")
+            concat_title += " and " + data_groups[i][0].title
             if params["grid2"]:
                 axis.grid()
-
-        if len(data_groups) > 2:
-            print("More than two units found, ignoring")
 
         # user can overwrite these stylistic elements
         if params["legend"]:
@@ -92,6 +91,7 @@ class GraphWindow(QWidget):
         else:
             ax.set_title(concat_title + " vs Time")
         self.sc.figure.tight_layout()
+        cursor = mplcursors.cursor(lines, hover=True)
 
 
 def init_label_text(label_str, layout):
@@ -174,13 +174,16 @@ class MainWindow(QMainWindow):
         panel7 = QWidget()
         self.legend_check = QCheckBox("Legend", panel7)
         self.legend_check.setFont(QFont("Arial", 15))
-        self.legend_check.setGeometry(80, 0, 100, 30)
+        self.legend_check.setGeometry(30, 0, 100, 30)
         self.grid1_check = QCheckBox("Grid1", panel7)
         self.grid1_check.setFont(QFont("Arial", 15))
-        self.grid1_check.setGeometry(180, 0, 100, 30)
+        self.grid1_check.setGeometry(130, 0, 100, 30)
         self.grid2_check = QCheckBox("Grid2", panel7)
         self.grid2_check.setFont(QFont("Arial", 15))
-        self.grid2_check.setGeometry(270, 0, 100, 30)
+        self.grid2_check.setGeometry(220, 0, 100, 30)
+        self.multiaxes_check = QCheckBox("Multi-ax", panel7)
+        self.multiaxes_check.setFont(QFont("Arial", 15))
+        self.multiaxes_check.setGeometry(310, 0, 100, 30)
         layout.addWidget(panel7)
 
         # row 8: graph button
@@ -218,14 +221,15 @@ class MainWindow(QMainWindow):
             "graph title": self.graph_title_text.text(),
             "legend": self.legend_check.isChecked(),
             "grid1": self.grid1_check.isChecked(),
-            "grid2": self.grid2_check.isChecked()
+            "grid2": self.grid2_check.isChecked(),
+            "multi-axes": self.multiaxes_check.isChecked()
         }
         data_types = data.select_choices(data_selected)
         if self.graph_width_text.text() != "" and self.graph_width_text.text().isnumeric() and \
                 self.graph_height_text.text() != "" and self.graph_height_text.text().isnumeric():
             self.graph_window = GraphWindow(int(self.graph_width_text.text()), int(self.graph_height_text.text()))
         else:
-            self.graph_window = GraphWindow()
+            self.graph_window = GraphWindow(800, 600)
         self.graph_window.graph(data_types, params)
         self.graph_window.show()
 
