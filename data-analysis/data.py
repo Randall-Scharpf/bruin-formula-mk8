@@ -42,7 +42,7 @@ class Data:
 # all the data that we want to keep track of
 all_data = ["Acceleration Magnitude", "Battery Voltage", "Coolant Temperature", "Engine Speed",
             "Exhaust Gas Temperature", "Fan on/off", "Fuel Pressure","Fuel Pump on/off", "Ignition Timing",
-            "Injector Duty Cycle","Intake Air Temperature", "Lambda", "Lambda Target", "Mass Airflow",
+            "Injector Duty Cycle","Intake Air Temperature", "Lambda", "Lambda Feedback", "Lambda Target", "Mass Airflow",
             "Manifold Absolute Pressure", "Rotation X", "Rotation Y", "Rotation Z", "Throttle %",
             "Volumetric Efficiency"]
 # acc data
@@ -63,6 +63,7 @@ manifold_pressure = Data("Manifold Absolute Pressure", "kPa")
 ve = Data("Volumetric Efficiency", "%")
 fuel_pressure = Data("Fuel Pressure", "PSIg")
 lambda_target = Data("Lambda Target", "Lambda")
+lambda_feedback = Data("Lambda Feedback", "%")
 fuel_pump = Data("Fuel Pump", "bool")
 fan1 = Data("Fan 1", "bool")
 # can data with message id = 0x01F0A005
@@ -87,7 +88,7 @@ def load(csv):
     can_01F0A004()
     can_01F0A005()
     can_01F0A006()
-    can_00DA5401()
+    load_egt()
     gyr()
 
 
@@ -119,6 +120,8 @@ def select_choices(choices):
         data_types.append(lambda1)
     if "Lambda Target" in choices:
         data_types.append(lambda_target)
+    if "Lambda Feedback" in choices:
+        data_types.append(lambda_feedback)
     if "Mass Airflow" in choices:
         data_types.append(mass_airflow)
     if "Manifold Absolute Pressure" in choices:
@@ -213,21 +216,6 @@ def can_01F0A000():
         coolant_temp.y.append(9.0 / 5 * hex_to_signed_int8(msg[14: 16]) + 32)
 
 
-# process can data with message id 00DA5401 (egt data)
-def can_00DA5401():
-    df = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "00DA5401")]
-    if df.empty:
-        print("Warning: No CAN data with message id 00DA5401")
-
-    time_stamps = df_to_float_numpy(df, "Time(ms)") / 1e6
-    messages = df["Data3"].to_list()
-
-    global egt
-    egt.x = time_stamps
-    for msg in messages:
-        egt.y.append(int(msg[0: 4], 16) / 16 * 9/5 + 32)
-
-
 # process can data with message id 01F0A003
 def can_01F0A003():
     df = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "01F0A003")]
@@ -292,11 +280,27 @@ def can_01F0A006():
     time_stamps = df_to_float_numpy(df, "Time(ms)") / 1e6
     messages = df["Data3"].to_list()
 
-    global inj_duty
+    global inj_duty, lambda_feedback
     inj_duty.x = time_stamps
+    lambda_feedback.x = time_stamps
     for msg in messages:
         inj_duty.y.append(int(msg[4: 6], 16) * 0.392157)
+        lambda_feedback.y.append(int(msg[2:4], 16) * 0.5 - 64)
 
+
+# process can data with message id 00DA5401 (egt data)
+def load_egt():
+    df = data_df.loc[data_df.index == "EGT"]
+    if df.empty:
+        print("Warning: No EGT data")
+
+    time_stamps = df_to_float_numpy(df, "Time(ms)") / 1e6
+    messages = df_to_float_numpy(df, "Data1")
+
+    global egt
+    egt.x = time_stamps
+    for msg in messages:
+        egt.y.append(msg * 9/5 + 32)
 
 # process acc data
 def acc():
