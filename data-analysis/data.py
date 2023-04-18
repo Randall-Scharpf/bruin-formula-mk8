@@ -44,7 +44,7 @@ all_data = ["Acceleration Magnitude", "Battery Voltage", "Coolant Temperature", 
             "Exhaust Gas Temperature", "Fan on/off", "Fuel Pressure","Fuel Pump on/off", "Ignition Timing",
             "Injector Duty Cycle","Intake Air Temperature", "Lambda", "Lambda Feedback", "Lambda Target", "Mass Airflow",
             "Manifold Absolute Pressure", "Rotation X", "Rotation Y", "Rotation Z", "Throttle %",
-            "Volumetric Efficiency", "Gear"]
+            "Volumetric Efficiency", "Gear", "Shifter"]
 # acc data
 acc_magnitude = Data("Acceleration Magnitude", "g")
 # egt data
@@ -76,6 +76,7 @@ inj_duty = Data("Injector Duty Cycle", "%")
 rotation_x = Data("Rotation X", "deg/s")
 rotation_y = Data("Rotation Y", "deg/s")
 rotation_z = Data("Rotation Z", "deg/s")
+shifting = Data("Shifter", "up/down")
 
 # data frame containing all data imported from files
 data_df = None
@@ -91,6 +92,7 @@ def load(csv):
     can_01F0A006()
     load_egt()
     gyr()
+    shf()
 
 
 def select_choices(choices):
@@ -139,6 +141,8 @@ def select_choices(choices):
         data_types.append(ve)
     if "Gear" in choices:
         data_types.append(gear)
+    if "Shifter" in choices:
+        data_types.append(shifting)
     return data_types
 
 
@@ -229,12 +233,16 @@ def can_01F0A003():
     messages = df["Data3"].to_list()
 
     global ve, fuel_pressure, lambda_target, fuel_pump, fan1
-    lambda1.x = ign_timing.x = battery_volts.x = gear.x = time_stamps
+    lambda1.x = ign_timing.x = battery_volts.x = time_stamps
     for msg in messages:
         lambda1.y.append(int(msg[0: 2], 16) * 0.00390625 + 0.5)
-        gear.y.append(int(msg[8: 10], 16))
         ign_timing.y.append(int(msg[10: 12], 16) * 0.35156 - 17)
         battery_volts.y.append(int(msg[12: 16], 16) * 0.0002455)
+
+    for i in range(1,len(messages)):
+        if(int(messages[i][8: 10], 16) != 7):
+            gear.x.append(time_stamps[i])
+            gear.y.append(int(messages[i][8: 10], 16))
 
 
 # process can data with message id 0x01F0A004
@@ -346,6 +354,30 @@ def gyr():
     rotation_x.y = x_list / 1e3
     rotation_y.y = y_list / 1e3
     rotation_z.y = z_list / 1e3
+
+def shf():
+    df = data_df.loc[data_df.index == "SHF"]
+    if df.empty:
+        print("Warning: No SHF Data")
+
+    df = df.replace('UPSHIFT', 1, regex=True)
+    df = df.replace('DOWNSHIFT', -1, regex=True)
+
+    time_stamps = df_to_float_numpy(df, "Time(ms)") / 1e6
+    messages = df_to_float_numpy(df, "Data1")
+
+    global shifting
+    print(time_stamps)
+    for i in range(0,len(time_stamps)):
+        shifting.x.append(time_stamps[i])
+        if(i < len(time_stamps)-1):
+            for j in range(time_stamps[i].astype(int)*100, time_stamps[i+1].astype(int)*100):
+                shifting.x.append(j/100)
+    for i in range(0, len(time_stamps)):
+        shifting.y.append(messages[i])
+        if(i < len(messages)-1):
+            for j in range(time_stamps[i].astype(int)*100, time_stamps[i+1].astype(int)*100):
+                shifting.y.append(0)
 
 '''
 if __name__ == '__main__':
