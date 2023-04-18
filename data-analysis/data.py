@@ -44,7 +44,7 @@ all_data = ["Acceleration Magnitude", "Battery Voltage", "Coolant Temperature", 
             "Exhaust Gas Temperature", "Fan on/off", "Fuel Pressure","Fuel Pump on/off", "Ignition Timing",
             "Injector Duty Cycle","Intake Air Temperature", "Lambda", "Lambda Feedback", "Lambda Target", "Mass Airflow",
             "Manifold Absolute Pressure", "Rotation X", "Rotation Y", "Rotation Z", "Throttle %",
-            "Volumetric Efficiency"]
+            "Volumetric Efficiency", "Gear"]
 # acc data
 acc_magnitude = Data("Acceleration Magnitude", "g")
 # egt data
@@ -58,6 +58,7 @@ coolant_temp = Data("Coolant Temp", "F")
 lambda1 = Data("Lambda #1", "Lambda")
 ign_timing = Data("Ignite Timing", "Deg")
 battery_volts = Data("Battery Volts", "Volts")
+gear = Data("Gear", "Gear #")
 # can data with message id = 0x01F0A004
 manifold_pressure = Data("Manifold Absolute Pressure", "kPa")
 ve = Data("Volumetric Efficiency", "%")
@@ -136,6 +137,8 @@ def select_choices(choices):
         data_types.append(throttle)
     if "Volumetric Efficiency" in choices:
         data_types.append(ve)
+    if "Gear" in choices:
+        data_types.append(gear)
     return data_types
 
 
@@ -226,9 +229,10 @@ def can_01F0A003():
     messages = df["Data3"].to_list()
 
     global ve, fuel_pressure, lambda_target, fuel_pump, fan1
-    lambda1.x = ign_timing.x = battery_volts.x = time_stamps
+    lambda1.x = ign_timing.x = battery_volts.x = gear.x = time_stamps
     for msg in messages:
         lambda1.y.append(int(msg[0: 2], 16) * 0.00390625 + 0.5)
+        gear.y.append(int(msg[8: 10], 16))
         ign_timing.y.append(int(msg[10: 12], 16) * 0.35156 - 17)
         battery_volts.y.append(int(msg[12: 16], 16) * 0.0002455)
 
