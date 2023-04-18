@@ -239,6 +239,7 @@ def can_01F0A003():
         ign_timing.y.append(int(msg[10: 12], 16) * 0.35156 - 17)
         battery_volts.y.append(int(msg[12: 16], 16) * 0.0002455)
 
+    # we don't want to show neutral in logs (it just adds confusion)
     for i in range(1,len(messages)):
         if(int(messages[i][8: 10], 16) != 7):
             gear.x.append(time_stamps[i])
@@ -367,7 +368,6 @@ def shf():
     messages = df_to_float_numpy(df, "Data1")
 
     global shifting
-    print(time_stamps)
     for i in range(0,len(time_stamps)):
         shifting.x.append(time_stamps[i])
         if(i < len(time_stamps)-1):
