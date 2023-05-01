@@ -43,7 +43,8 @@ class Data:
 all_data = ["Acceleration Magnitude", "Battery Voltage", "Coolant Temperature", "Engine Speed",
             "Exhaust Gas Temperature", "Fan on/off", "Fuel Pressure","Fuel Pump on/off", "Ignition Timing",
             "Injector Duty Cycle","Intake Air Temperature", "Lambda", "Lambda Feedback", "Lambda Target", "Mass Airflow",
-            "Manifold Absolute Pressure", "Rotation X", "Rotation Y", "Rotation Z", "Throttle %",
+            "Manifold Absolute Pressure", "RPM Limit", "Rotation X", "Rotation Y", "Rotation Z", "Throttle %",
+            "FL Wheel Speed", "FR Wheel Speed", "RL Wheel Speed", "RR Wheel Speed",
             "Volumetric Efficiency", "Gear", "Shifter"]
 # acc data
 acc_magnitude = Data("Acceleration Magnitude", "g")
@@ -72,6 +73,13 @@ launch_ramp_time = Data("Launch Ramp Time", "ms")
 mass_airflow = Data("Mass Airflow", "gms/s")
 # can data with message id = 0x01F0A006
 inj_duty = Data("Injector Duty Cycle", "%")
+#can data with message id = 0x01F0A008
+rpm_limit = Data("RPM Limit", "RPM")
+#can data with message id = 0x01F0A011
+fl_wheel_speed = Data("FL Wheel Speed", "mph")
+fr_wheel_speed = Data("FR Wheel Speed", "mph")
+rl_wheel_speed = Data("RL Wheel Speed", "mph")
+rr_wheel_speed = Data("RR Wheel Speed", "mph")
 # gyr data
 rotation_x = Data("Rotation X", "deg/s")
 rotation_y = Data("Rotation Y", "deg/s")
@@ -90,6 +98,8 @@ def load(csv):
     can_01F0A004()
     can_01F0A005()
     can_01F0A006()
+    can_01F0A008()
+    can_01F0A011()
     load_egt()
     gyr()
     shf()
@@ -129,6 +139,8 @@ def select_choices(choices):
         data_types.append(mass_airflow)
     if "Manifold Absolute Pressure" in choices:
         data_types.append(manifold_pressure)
+    if "RPM Limit" in choices:
+        data_types.append(rpm_limit)
     if "Rotation X" in choices:
         data_types.append(rotation_x)
     if "Rotation Y" in choices:
@@ -139,6 +151,14 @@ def select_choices(choices):
         data_types.append(throttle)
     if "Volumetric Efficiency" in choices:
         data_types.append(ve)
+    if "FL Wheel Speed" in choices:
+        data_types.append(fl_wheel_speed)
+    if "FR Wheel Speed" in choices:
+        data_types.append(fr_wheel_speed)
+    if "RL Wheel Speed" in choices:
+        data_types.append(rl_wheel_speed)
+    if "RR Wheel Speed" in choices:
+        data_types.append(rr_wheel_speed)
     if "Gear" in choices:
         data_types.append(gear)
     if "Shifter" in choices:
@@ -297,9 +317,44 @@ def can_01F0A006():
     inj_duty.x = time_stamps
     lambda_feedback.x = time_stamps
     for msg in messages:
-        inj_duty.y.append(int(msg[4: 6], 16) * 0.392157)
+        inj_duty.y.append(int(msg[6: 10], 16) * 0.392157)
         lambda_feedback.y.append(int(msg[2:4], 16) * 0.5 - 64)
 
+
+# process can data with message id 0x01F0A008
+def can_01F0A008():
+    df = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "01F0A008")]
+    if df.empty:
+        print("Warning: No CAN data with message id 01F0A008")
+
+    time_stamps = df_to_float_numpy(df, "Time(ms)") / 1e6
+    messages = df["Data3"].to_list()
+
+    global rpm_limit
+    rpm_limit.x = time_stamps
+    for msg in messages:
+        rpm_limit.y.append(int(msg[6: 10], 16) * 0.39063)
+
+
+# process can data with message id 0x01F0A011
+def can_01F0A011():
+    df = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "01F0A011")]
+    if df.empty:
+        print("Warning: No CAN data with message id 01F0A011")
+
+    time_stamps = df_to_float_numpy(df, "Time(ms)") / 1e6
+    messages = df["Data3"].to_list()
+
+    global fl_wheel_speed, fr_wheel_speed, rl_wheel_speed, rr_wheel_speed
+    fl_wheel_speed.x = time_stamps
+    rl_wheel_speed.x = time_stamps
+    fr_wheel_speed.x = time_stamps
+    rr_wheel_speed.x = time_stamps
+    for msg in messages:
+        fl_wheel_speed.y.append(int(msg[0:4], 16) * 0.02 / 1.609)
+        fr_wheel_speed.y.append(int(msg[4:8], 16) * 0.02 / 1.609)
+        rl_wheel_speed.y.append(int(msg[8:12], 16) * 0.02 / 1.609)
+        rr_wheel_speed.y.append(int(msg[12:16], 16) * 0.02 / 1.609)
 
 # process can data with message id 00DA5401 (egt data)
 def load_egt():
