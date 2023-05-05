@@ -42,8 +42,10 @@ class Data:
 # all the data that we want to keep track of
 all_data = ["Acceleration Magnitude", "Battery Voltage", "Coolant Temperature", "Engine Speed",
             "Exhaust Gas Temperature", "Fan on/off", "Fuel Pressure","Fuel Pump on/off", "Ignition Timing",
-            "Injector Duty Cycle","Intake Air Temperature", "Lambda", "Lambda Feedback", "Lambda Target", "Mass Airflow",
-            "Manifold Absolute Pressure", "RPM Limit", "Rotation X", "Rotation Y", "Rotation Z", "Throttle %",
+            "Injector Duty Cycle","Intake Air Temperature", "Lambda", "Lambda Feedback", "Lambda Target", 
+            "Lin Pot FR", "Lin Pot FL", "Lin Pot RL", "Lin Pot RR", 
+            "Mass Airflow", "Manifold Absolute Pressure", "RPM Limit", 
+            "Rotation X", "Rotation Y", "Rotation Z", "Throttle %",
             "FL Wheel Speed", "FR Wheel Speed", "RL Wheel Speed", "RR Wheel Speed",
             "Volumetric Efficiency", "Gear", "Shifter"]
 # acc data
@@ -85,6 +87,11 @@ rotation_x = Data("Rotation X", "deg/s")
 rotation_y = Data("Rotation Y", "deg/s")
 rotation_z = Data("Rotation Z", "deg/s")
 shifting = Data("Shifter", "up/down")
+# can data with message id = 0xC?01000 where ? is 0, 1, 2, 3 for FR, FL, RL, RR
+lin_pot_fr = Data("Lin Pot FR", "mm")
+lin_pot_fl = Data("Lin Pot FL", "mm")
+lin_pot_rl = Data("Lin Pot RL", "mm")
+lin_pot_rr = Data("Lin Pot RR", "mm")
 
 # data frame containing all data imported from files
 data_df = None
@@ -100,6 +107,7 @@ def load(csv):
     can_01F0A006()
     can_01F0A008()
     can_01F0A011()
+    load_lin_pots()
     load_egt()
     gyr()
     shf()
@@ -135,6 +143,14 @@ def select_choices(choices):
         data_types.append(lambda_target)
     if "Lambda Feedback" in choices:
         data_types.append(lambda_feedback)
+    if "Lin Pot FR" in choices:
+        data_types.append(lin_pot_fr)
+    if "Lin Pot FL" in choices:
+        data_types.append(lin_pot_fl)
+    if "Lin Pot RL" in choices:
+        data_types.append(lin_pot_rl)
+    if "Lin Pot RR" in choices:
+        data_types.append(lin_pot_rr)
     if "Mass Airflow" in choices:
         data_types.append(mass_airflow)
     if "Manifold Absolute Pressure" in choices:
@@ -355,6 +371,42 @@ def can_01F0A011():
         fr_wheel_speed.y.append(int(msg[4:8], 16) * 0.02 / 1.609)
         rl_wheel_speed.y.append(int(msg[8:12], 16) * 0.02 / 1.609)
         rr_wheel_speed.y.append(int(msg[12:16], 16) * 0.02 / 1.609)
+
+
+def load_lin_pots():
+    df_fr = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "C001000")]
+    df_fl = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "C101000")]
+    df_rl = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "C201000")]
+    df_rr = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "C301000")]
+
+    if df_fr.empty:
+        print("Warning: No lin pot data from FR")
+    if df_fl.empty:
+        print("Warning: No lin pot data from FL")
+    if df_rl.empty:
+        print("Warning: No lin pot data from RL")
+    if df_rr.empty:
+        print("Warning: No lin pot data from RR")
+
+    global lin_pot_fr, lin_pot_fl, lin_pot_rl, lin_pot_rr
+
+    lin_pot_fr.x = df_to_float_numpy(df_fr, "Time(ms)") / 1e6
+    lin_pot_fl.x = df_to_float_numpy(df_fl, "Time(ms)") / 1e6
+    lin_pot_rl.x = df_to_float_numpy(df_rl, "Time(ms)") / 1e6
+    lin_pot_rr.x = df_to_float_numpy(df_rr, "Time(ms)") / 1e6
+
+    for msg in df_fr["Data3"].to_list():
+        lin_pot_fr.y.append(int(msg[0:4], 16) * 75./1023.)
+
+    for msg in df_fl["Data3"].to_list():
+        lin_pot_fl.y.append(int(msg[0:4], 16) * 75./1023.)
+
+    for msg in df_rl["Data3"].to_list():
+        lin_pot_rl.y.append(int(msg[0:4], 16) * 75./1023.)
+
+    for msg in df_rr["Data3"].to_list():
+        lin_pot_rr.y.append(int(msg[0:4], 16) * 75./1023.)
+
 
 # process can data with message id 00DA5401 (egt data)
 def load_egt():
