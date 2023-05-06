@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.backends.backend_tkagg
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.interpolate import interp1d
 
 matplotlib.use('tkagg')
 
@@ -374,10 +375,10 @@ def can_01F0A011():
 
 
 def load_lin_pots():
-    df_fr = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "C001000")]
-    df_fl = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "C101000")]
-    df_rl = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "C201000")]
-    df_rr = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "C301000")]
+    df_fr = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "0C001000")]
+    df_fl = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "0C101000")]
+    df_rl = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "0C201000")]
+    df_rr = data_df.loc[(data_df.index == "CAN") & (data_df["Data2"] == "0C301000")]
 
     if df_fr.empty:
         print("Warning: No lin pot data from FR")
