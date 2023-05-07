@@ -1,0 +1,12 @@
+gui/dials/__pycache__/AFRDial.cpython-311.pyc
+gui/dials/__pycache__/AnalogGaugeWidget.cpython-311.pyc
+gui/dials/__pycache__/RPMDial.cpython-311.pyc
+gui/dials/__pycache__/VelocityDial.cpython-311.pyc
+gui/dials/__pycache__/__init__.cpython-311.pyc
+gui/gear/__pycache__/GearWidget.cpython-311.pyc
+gui/numdisplay/__pycache__/BatteryDisplay.cpython-311.pyc
+gui/numdisplay/__pycache__/BorderBackgroundWidget.cpython-311.pyc
+gui/numdisplay/__pycache__/BrakeDisplay.cpython-311.pyc
+gui/numdisplay/__pycache__/CoolantDisplay.cpython-311.pyc
+gui/numdisplay/__pycache__/ExhaustDisplay.cpython-311.pyc
+gui/numdisplay/__pycache__/NumberDisplayWidget.cpython-311.pyc
